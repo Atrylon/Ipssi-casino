@@ -305,7 +305,7 @@ def statistiques_niveau(data):
 Statistiques du niveau %s :
 Temps de complétion : %s
 Nombre d'essais : %s   
-Essais : %s  
+Essais : [ %s ]
 Gain : %s
 Argent à la fin du niveau : %s  
 '''%(data['level'], data['duree'], data['nb_coup'], str(data['essais']).strip('[]'), data['gain'],
