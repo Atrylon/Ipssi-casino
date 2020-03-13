@@ -345,23 +345,27 @@ def statistiques_globales():
 
     try:
         choix_stats = int(input('''
+        
+                 STATISTIQUES GLOBALES
 ---------------------------------------------------------
 | Vous pouvez :                                         |
 |       - Fréquence de réponse au niveau 1 (1)          |
 |       - Pourcentage de gagnants (2)                   |
-|       - Fréquence du nombre de coup au niveau  (3)    |
+|       - Fréquence du nombre de coup au niveau 1 (3)   |
 |       - Retour au menu (4)                            |
 ---------------------------------------------------------
 Votre réponse : '''))
     except:
         while choix_stats not in (1, 2, 3):
             choix = int(input('''
-    ENTREE INCORRECTE !   
+ENTREE INCORRECTE !   
+    
+                STATISTIQUES GLOBALES
 ---------------------------------------------------------
 | Vous pouvez :                                         |
 |       - Fréquence de réponse au niveau 1 (1)          |
 |       - Pourcentage de gagnants (2)                   |
-|       - Fréquence du nombre de coup au niveau  (3)    |
+|       - Fréquence du nombre de coup au niveau 1 (3)   |
 |       - Retour au menu (4)                            |
 ---------------------------------------------------------
 Votre réponse : '''))
