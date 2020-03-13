@@ -106,14 +106,14 @@ def get_mise():
     global dotation
     mise = 0
 
-    while int(mise) > float(dotation) or int(mise) == 0:
-        try:
-            mise = int(input('''Le jeu commence, entrez votre mise : 
+    try:
+        mise = int(input('''Le jeu commence, entrez votre mise : 
 Votre mise : '''))
 
-            if int(mise) == 0:
+        while int(mise) > float(dotation) or int(mise) <= 0:
+            if int(mise) == 0 or int(mise) < 0:
                 mise = int(input('''
-Erreur, votre mise ne peut être nulle.
+Erreur, votre mise ne peut être nulle ou négative.
 Entrer une mise inférieure ou égale à %s€
 Votre mise : ''' % (str(dotation))))
             elif int(mise) > float(dotation):
@@ -121,16 +121,30 @@ Votre mise : ''' % (str(dotation))))
 Erreur, votre mise est plus elevé que votre solde.
 Entrer une mise inférieure ou égale à %s€
 Votre mise : '''%(str(dotation))))
-        except:
-            while True:
-                try:
-                    mise = int(input('''
+
+    except:
+        while True:
+            try:
+                mise = int(input('''
 Erreur, format incorrecte.
 Entrer une mise inférieure ou égale à %s€
 Votre mise : '''%(str(dotation))))
-                    break
-                except:
-                    continue
+
+                while int(mise) > float(dotation) or int(mise) <= 0:
+                    if int(mise) == 0 or int(mise) < 0:
+                        mise = int(input('''
+Erreur, votre mise ne peut être nulle ou négative.
+Entrer une mise inférieure ou égale à %s€
+Votre mise : ''' % (str(dotation))))
+                    elif int(mise) > float(dotation):
+                        mise = int(input('''
+Erreur, votre mise est plus elevé que votre solde.
+Entrer une mise inférieure ou égale à %s€
+Votre mise : ''' % (str(dotation))))
+                        break
+                break
+            except:
+                continue
 
     print('''
 Vous avez choisi de miser %s€'''%(str(mise)))
@@ -249,7 +263,8 @@ Votre réponse : '''%(str(max_tentatives-nb_coup))))
             'mise': str(mise),
             'gain': str(gain),
             'nb_coup': str(nb_coup),
-            'essais': essais_niveau
+            'essais': essais_niveau,
+                # 'status': status
                 }
 
         statistiques_niveau(data)
@@ -456,7 +471,7 @@ def get_last_dotation_in_json():
     if name_user in json_content:
         test = json_content[name_user][-1]
 
-        if test['actual_dotation'] == 0:
+        if test['actual_dotation'] == '0':
             print('''
 Welcome back %s !
 Vous étiez à sec la dernière fois, cependant vous êtes chanceux : la banque vous fait cadeau de 10€.'''%(name_user))
