@@ -1,7 +1,7 @@
 from random import randrange
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
-# import Menu
+import matplotlib.pyplot as plt
 
 name_user = ""
 dotation = 10
@@ -10,6 +10,8 @@ level = 1
 nb_python = 0
 nb_coup = 0
 nb_user = 0
+essais_niveau = []
+data_partie = {}
 
 
 # TO USE
@@ -21,12 +23,31 @@ nb_user = 0
 def start():
     global name_user
 
-    name_user = input('Je suis Python. Quel est votre pseudo ? ')
+    try:
+        choix = int(input('''
+Bonjour ! Voulez-vous jouer, voir les stats ou quitter ? (1/2/3)
+Votre réponse : '''))
+    except:
+        pass
+
+    while choix == 2 :
+        statistiques_globales()
+        choix = int(input('''
+Bonjour ! Voulez-vous voir les stats, jouer ou quitter ? (1/2/3) 
+Votre réponse : '''))
+
+    if choix == 3:
+        print('Au revoir !')
+        exit()
+
+
+    name_user = input('''
+Je suis Python. Quel est votre pseudo ? 
+Votre pseudo : ''')
 
     get_last_dotation_in_json()
 
-    menu = Menu()
-    menu.open()
+
     print('''
 ---------------------------------------------------------------------------------------------------------------
 |                                      Hello ''' + name_user + ''', vous avez '''+ str(dotation) +'''€.                                            |
@@ -54,16 +75,23 @@ def get_mise():
     global dotation
 
     try:
-        mise = int(input('Le jeu commence, entrez votre mise : '))
+        mise = int(input('''Le jeu commence, entrez votre mise : 
+Votre mise : '''))
     except:
         print('not okay : to do verif input type')
 
-    while int(mise) > dotation:
-        mise = input(' Erreur, votre mise est plus elevé que votre solde.'
- 'Entrer une mise inférieure ou égale à '+ str(dotation) +'€')
+    while int(mise) > dotation or int(mise) == 0:
+        if int(mise) == 0 :
+            mise = int(input('''Erreur, votre mise ne peut être nulle.
+Entrer une mise inférieure ou égale à %s€
+Votre mise : ''' % (str(dotation))))
+        else:
+            mise = int(input('''Erreur, votre mise est plus elevé que votre solde.
+Entrer une mise inférieure ou égale à %s€
+Votre mise : '''%(str(dotation))))
 
     print('''
-Vous avez choisi de miser '''+ str(mise)+'''€''')
+Vous avez choisi de miser %s€'''%(str(mise)))
 
 
 def get_random():
@@ -74,7 +102,8 @@ def get_random():
     limite = str(str(level) + "0")
 
     nb_python = randrange(1, stop, 1)
-    print('Ca y est, j\'ai choisi un nombre entre 1 et', limite)
+    print('''
+Ca y est, j\'ai choisi un nombre entre 1 et %s'''%(limite))
 
 
 def guess():
@@ -82,7 +111,10 @@ def guess():
     global mise
     global nb_python
     global dotation
+    global level
+    global essais_niveau
 
+    essais_niveau = []
     nb_coup = 0
     nb_user = 0
 
@@ -97,9 +129,9 @@ def guess():
 
 
     try:
+        debut = datetime.now()
         nb_user = int(input('''Alors mon nombre est : 
 '''))
-
     except:
         while True:
             try:
@@ -111,6 +143,8 @@ def guess():
     nb_coup += 1
 
     while nb_user != nb_python and nb_coup <= max_tentatives:
+        # On stocke les essais de l'utilisateur
+        essais_niveau.append(nb_user)
 
         if nb_coup + 1 == max_tentatives:
             print('''Atention, il ne vous reste qu\'une chance !''')
@@ -128,31 +162,47 @@ def guess():
             nb_user = int(input('Alors mon nombre est : '))
         nb_coup += 1
 
+    # On ajoute la dernière réponse au tableau
+    essais_niveau.append(nb_user)
+
     if nb_user == nb_python:
         if nb_coup == 1:
             gain = mise * 2
         elif nb_coup == 2:
             gain = mise * 0.5
         else:
-            gain = 0
+            gain = - mise
 
-        dotation = dotation - mise + gain
+        dotation = dotation + gain
 
         text_win = 'Bingo ' + name_user + ', vous avez gagné en ' + str(nb_coup) + ' coup(s)'
 
         if dotation > 0:
-            text_win = text_win + 'et vous avez emporté ' + str(gain) + '€ !'
+            text_win = text_win + ' et vous avez emporté ' + str(gain) + '€ !'
         else:
             text_win = text_win + ' mais votre solde est null. A la prochaine !'
 
+        fin = datetime.now()
+
+        duree = fin-debut
+
         data = {
             'date' : str(datetime.today()),
-            'level' : level,
-            'actual_dotation' : dotation,
-            'mise' :  mise,
-            'gain' : gain,
-            'nb_coup' : nb_coup
+            'duree' : str(duree),
+            'level' : str(level),
+            'actual_dotation' : str(dotation),
+            'mise' : str(mise),
+            'gain' : str(gain),
+            'nb_coup' : str(nb_coup),
+            'essais' : essais_niveau
                 }
+
+        statistiques_niveau(data)
+
+        # On stocke le résultat du niveau
+        if name_user not in data_partie:
+            data_partie[name_user] = []
+        data_partie[name_user].append(data)
 
         write_stats(data)
 
@@ -174,38 +224,92 @@ def menu():
         elif choix == 'O':
             if level < 3 :
                 level += 1
-                print('''Super ! Vous passez au niveau ''' + str(level) +'''.
+                print('''
+Super ! Vous passez au niveau ''' + str(level) +'''.
 Rappelez vous, le principe est le même sauf que mon nombre est maintenant entre 1 et ''' + str(level) + '''0 !''')
             else:
-                print('''Super ! Vous restez au niveau ''' + str(level) + '''.
+                print('''
+Super ! Vous restez au niveau ''' + str(level) + '''.
 Rappelez vous, le principe reste le même : mon nombre est entre 1 et ''' + str(level) + '''0 !''')
 
             return True
     else:
         return False
 
+# On affiche les statistiques du niveau
+def statistiques_niveau(data):
+    print('''
+Statistiques du niveau ''' + data['level'] + ''' :
+Temps de complétion : ''' + data['duree'] + '''
+Nombre d'essais : ''' + data['nb_coup'] + '''   
+Essais : '''+ str(data['essais']).strip('[]') + '''   
+Gain : ''' + data['gain'] + ''' 
+Argent à la fin du niveau : ''' + data['actual_dotation'] + '''   
+''')
 
-def statistiques_partie():
-    return True
+
+def statistiques_partie(data_partie):
+    essais_cumules = 0
+    gain_cumules = 0
+    durees = []
+    for item in data_partie[name_user]:
+        durees.append(datetime.strptime(item['duree'], '%H:%M:%S.%f'))
+        essais_cumules += int(item['nb_coup'])
+        gain_cumules += float(item['gain'])
+
+    last_duree = durees.pop()
+    for duree in durees:
+        last_duree = last_duree + timedelta(hours=duree.hour, minutes=duree.minute, seconds=duree.second, microseconds=duree.microsecond)
+
+    dotation_finale = str(data_partie[name_user][-1]['actual_dotation'])
+
+    print('''
+Au revoir %s !
+Vous avez fini %s partie(s) en %s
+Nombre d'essais total : %s
+Gains totaux : %s€
+Argent à la fin de la partie : %s €
+'''%(name_user, str(len(data_partie[name_user])), str(last_duree.time()), str(essais_cumules), str(gain_cumules), dotation_finale))
 
 
 def statistiques_globales():
-    return True
+    plt.style.use('ggplot')
+
+    with open('stats.json') as json_file:
+        json_content = json.load(json_file)
+
+    list_essais_1 = []
+    tab = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    for player in json_content:
+        for item in json_content[player]:
+            if item['level'] == '1':
+                for essai in item['essais']:
+                    tab[essai-1] += 1
+    reponses = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+
+    plt.bar(reponses, tab)
+    plt.ylabel('Nombre d\'occurence')
+    plt.xlabel('Réponses possibles')
+    plt.title('Fréquences des réponses au niveau 1')
+
+    plt.show()
 
 
+# On sauvegarde les statistiques de chaque niveau dans le json
 def write_stats(data):
     with open('stats.json') as json_file:
         json_content = json.load(json_file)
 
-    if name_user in json_content:
-        json_content[name_user].append(data)
-    else:
+    if name_user not in json_content:
         json_content[name_user] = []
-        json_content[name_user].append(data)
+
+    json_content[name_user].append(data)
 
     with open('stats.json', 'w') as outfile:
         json.dump(json_content, outfile)
 
+
+# On vérifie si le joueur existe dans le JSON pour lui redonner sa dernière mise si elle n'est pas nulle
 def get_last_dotation_in_json():
     global dotation
 
@@ -214,11 +318,17 @@ def get_last_dotation_in_json():
 
     if name_user in json_content:
         test = json_content[name_user][-1]
-        dotation = test['actual_dotation']
+
+        if test['actual_dotation'] == 0:
+            print('Vous étiez à sec la dernière fois mais la banque vous fait cadeau de 10€.')
+        else:
+            dotation = test['actual_dotation']
+            print('La dernière fois, vous aviez fini à '+ str(dotation) +'€, la banque vous rend votre argent.')
 
 
 def game():
     boolean_while = True
+    global data_partie
 
     start()
     while boolean_while == True:
@@ -226,6 +336,8 @@ def game():
         get_random()
         guess()
         boolean_while = menu()
+    statistiques_partie(data_partie)
+
 
 
 
