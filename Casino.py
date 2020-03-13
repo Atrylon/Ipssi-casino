@@ -14,14 +14,10 @@ essais_niveau = []
 data_partie = {}
 
 
-# TO USE
-# gain = le montant de la mise du joueur !\n
-# solde = le montant de la mise du joueur !\n  
-# mise moyenne est de "mise_moy"\n
-
-
+# Fonction des menus de début de jeu et affichant les règles
 def start():
     global name_user
+    choix = 0
 
     try:
         choix = int(input('''
@@ -33,8 +29,8 @@ def start():
 |       - Quitter (3)                              |
 ----------------------------------------------------
 Votre réponse : '''))
-    except:
-        while choix not in (1,2,3):
+
+        while choix not in (1, 2, 3):
             choix = int(input('''
 ENTREE INCORRECTE !   
 ---------------------------------------------------- 
@@ -45,7 +41,22 @@ ENTREE INCORRECTE !
 ----------------------------------------------------
 Votre réponse : '''))
 
-    while choix == 2 :
+    except:
+        while choix not in (1, 2, 3):
+            try:
+                choix = int(input('''
+ENTREE INCORRECTE !   
+---------------------------------------------------- 
+| Vous pouvez :                                    |
+|       - Jouer (1)                                |
+|       - Voir les statistiques globales (2)       |
+|       - Quitter (3)                              |
+----------------------------------------------------
+Votre réponse : '''))
+            except:
+                pass
+
+    while choix == 2:
         statistiques_globales()
         choix = int(input('''
 ---------------------------------------------------- 
@@ -61,13 +72,11 @@ Votre réponse : '''))
                     Au revoir !''')
         exit()
 
-
     name_user = input('''
 Je suis PYTHON. Quel est votre pseudo ? 
 Votre pseudo : ''')
 
     get_last_dotation_in_json()
-
 
     print('''
 ---------------------------------------------------------------------------------------------------------------
@@ -91,36 +100,46 @@ Votre pseudo : ''')
 ''')
 
 
+# Fonction de récupération de la mise du joueur + gestion des erreurs
 def get_mise():
     global mise
     global dotation
+    mise = 0
 
-    try:
-        mise = int(input('''Le jeu commence, entrez votre mise : 
+    while int(mise) > float(dotation) or int(mise) == 0:
+        try:
+            mise = int(input('''Le jeu commence, entrez votre mise : 
 Votre mise : '''))
-    except:
-        print('not okay : to do verif input type')
 
-    while int(mise) > dotation or int(mise) == 0:
-        if int(mise) == 0 :
-            mise = int(input('''
+            if int(mise) == 0:
+                mise = int(input('''
 Erreur, votre mise ne peut être nulle.
 Entrer une mise inférieure ou égale à %s€
 Votre mise : ''' % (str(dotation))))
-        else:
-            mise = int(input('''
+            elif int(mise) > float(dotation):
+                mise = int(input('''
 Erreur, votre mise est plus elevé que votre solde.
 Entrer une mise inférieure ou égale à %s€
 Votre mise : '''%(str(dotation))))
+        except:
+            while True:
+                try:
+                    mise = int(input('''
+Erreur, format incorrecte.
+Entrer une mise inférieure ou égale à %s€
+Votre mise : '''%(str(dotation))))
+                    break
+                except:
+                    continue
 
     print('''
 Vous avez choisi de miser %s€'''%(str(mise)))
 
 
+# Calcul du nombre random pour le jeu
 def get_random():
     global nb_python
 
-    #     calcul du stop PEUT ETRE A REFAIRE
     stop = int(str(level) + "1")
     limite = str(str(level) + "0")
 
@@ -129,6 +148,7 @@ def get_random():
 Ca y est, j\'ai choisi un nombre entre 1 et %s !'''%(limite))
 
 
+# Fonction centrale du jeu avec gestion déduction nombre + calcul gains
 def guess():
     global nb_coup
     global mise
@@ -136,6 +156,7 @@ def guess():
     global dotation
     global level
     global essais_niveau
+    global nb_user
 
     essais_niveau = []
     nb_coup = 0
@@ -204,15 +225,15 @@ Votre réponse : '''%(str(max_tentatives-nb_coup))))
         else:
             gain = - mise
 
-        dotation = dotation + gain
+        dotation = int(dotation) + gain
 
-        text_win = 'Bingo ' + name_user + ', vous avez gagné en ' + str(nb_coup) + ' coup(s)'
+        text_win = 'Bingo %s, vous avez gagné en %s coup(s)'%(name_user, str(nb_coup))
 
         if dotation > 0:
             if gain > 0 :
-                text_win = text_win + ' et vous avez emporté ' + str(gain) + '€ !'
+                text_win = text_win + ' et vous avez emporté %s€ !'%(str(gain))
             else:
-                text_win = text_win + ' mais vous avez perdu ' + str(-gain) + '€ !'
+                text_win = text_win + ' mais vous avez perdu %s€ !'%(str(-gain))
         else:
             text_win = text_win + ' mais votre solde est null. A la prochaine !'
 
@@ -221,14 +242,14 @@ Votre réponse : '''%(str(max_tentatives-nb_coup))))
         duree = fin-debut
 
         data = {
-            'date' : str(datetime.today()),
-            'duree' : str(duree),
-            'level' : str(level),
-            'actual_dotation' : str(dotation),
-            'mise' : str(mise),
-            'gain' : str(gain),
-            'nb_coup' : str(nb_coup),
-            'essais' : essais_niveau
+            'date': str(datetime.today()),
+            'duree': str(duree),
+            'level': str(level),
+            'actual_dotation': str(dotation),
+            'mise': str(mise),
+            'gain': str(gain),
+            'nb_coup': str(nb_coup),
+            'essais': essais_niveau
                 }
 
         statistiques_niveau(data)
@@ -242,50 +263,56 @@ Votre réponse : '''%(str(max_tentatives-nb_coup))))
 
         print(text_win)
 
+
+# "Menu" post partie qui donne le choix de continuer ou non
 def menu():
     global dotation
     global level
 
     if dotation > 0:
-        choix = input('''Il vous reste '+ str(dotation)+ '€. 
+        choix = input('''Il vous reste %s€. 
 Souhaitez-vous continuer la partie (O/N) ? 
-Votre réponse : ''')
+Votre réponse : '''%(str(dotation)))
 
-        while choix not in ('O', 'N') :
+        while choix not in ('O', 'N'):
             choix = input('''
 Je ne comprends pas votre réponse. Souhaitez-vous continuer la partie (O/N) ? 
 Votre réponse : ''')
 
-        if choix == 'N' :
-            print('Au revoir ! Vous finissez la partie avec ' + str(dotation) +'€.')
+        if choix == 'N':
+            print('''
+Au revoir ! Vous finissez la partie avec %s€.'''%(str(dotation)))
             return False
         elif choix == 'O':
-            if level < 3 :
+            if level < 3:
                 level += 1
                 print('''
-Super ! Vous passez au niveau ''' + str(level) +'''.
-Rappelez vous, le principe est le même sauf que mon nombre est maintenant entre 1 et ''' + str(level) + '''0 !''')
+Super ! Vous passez au niveau %s.
+Rappelez vous, le principe est le même sauf que mon nombre est maintenant entre 1 et %s0 !'''%(str(level), str(level)))
             else:
                 print('''
-Super ! Vous restez au niveau ''' + str(level) + '''.
-Rappelez vous, le principe reste le même : mon nombre est entre 1 et ''' + str(level) + '''0 !''')
+Super ! Vous restez au niveau %s.
+Rappelez vous, le principe reste le même : mon nombre est entre 1 et %s0 !'''%(str(level), str(level)))
 
             return True
     else:
         return False
 
+
 # On affiche les statistiques du niveau
 def statistiques_niveau(data):
     print('''
-Statistiques du niveau ''' + data['level'] + ''' :
-Temps de complétion : ''' + data['duree'] + '''
-Nombre d'essais : ''' + data['nb_coup'] + '''   
-Essais : '''+ str(data['essais']).strip('[]') + '''   
-Gain : ''' + data['gain'] + ''' 
-Argent à la fin du niveau : ''' + data['actual_dotation'] + '''   
-''')
+Statistiques du niveau %s :
+Temps de complétion : %s
+Nombre d'essais : %s   
+Essais : %s  
+Gain : %s
+Argent à la fin du niveau : %s  
+'''%(data['level'], data['duree'], data['nb_coup'], str(data['essais']).strip('[]'), data['gain'],
+     data['actual_dotation']))
 
 
+# Calcul et affichage des differentes statistiques de fin de partie
 def statistiques_partie(data_partie):
     essais_cumules = 0
     gain_cumules = 0
@@ -310,76 +337,93 @@ Argent à la fin de la partie : %s €
 '''%(name_user, str(len(data_partie[name_user])), str(last_duree.time()), str(essais_cumules), str(gain_cumules), dotation_finale))
 
 
+# Calcul et affichage des différentes stats possibles
 def statistiques_globales():
-    plt.style.use('ggplot')
-
     choix_stats = 0
+
+    plt.style.use('ggplot')
 
     try:
         choix_stats = int(input('''
----------------------------------------------------- 
-| Vous pouvez :                                    |
-|       - Fréquence de réponse au niveau 1 (1)     |
-|       - Pourcentage de gagnants (2)              |
-|       - Retour au menu (3)                       |
-----------------------------------------------------
+---------------------------------------------------------
+| Vous pouvez :                                         |
+|       - Fréquence de réponse au niveau 1 (1)          |
+|       - Pourcentage de gagnants (2)                   |
+|       - Fréquence du nombre de coup au niveau  (3)    |
+|       - Retour au menu (4)                            |
+---------------------------------------------------------
 Votre réponse : '''))
     except:
         while choix_stats not in (1, 2, 3):
             choix = int(input('''
     ENTREE INCORRECTE !   
----------------------------------------------------- 
-| Vous pouvez :                                    |
-|       - Fréquence de réponse au niveau 1 (1)     |
-|       - Pourcentage de gagnants (2)              |
-|       - Retour au menu (3)                       |
-----------------------------------------------------
+---------------------------------------------------------
+| Vous pouvez :                                         |
+|       - Fréquence de réponse au niveau 1 (1)          |
+|       - Pourcentage de gagnants (2)                   |
+|       - Fréquence du nombre de coup au niveau  (3)    |
+|       - Retour au menu (4)                            |
+---------------------------------------------------------
 Votre réponse : '''))
 
-    if choix_stats == 3 :
+    if choix_stats == 4:
         start()
-    elif choix_stats == 1:
+    else:
         with open('stats.json') as json_file:
             json_content = json.load(json_file)
 
-        list_essais_1 = []
-        tab = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        for player in json_content:
-            for item in json_content[player]:
-                if item['level'] == '1':
-                    for essai in item['essais']:
-                        tab[essai-1] += 1
-        reponses = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+        if choix_stats == 1:
+            tab = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            for player in json_content:
+                for item in json_content[player]:
+                    if item['level'] == '1':
+                        for essai in item['essais']:
+                            tab[essai-1] += 1
+            reponses = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
 
-        plt.bar(reponses, tab)
-        plt.ylabel('Nombre d\'occurence')
-        plt.xlabel('Réponses possibles')
-        plt.title('Fréquences des réponses au niveau 1')
+            plt.bar(reponses, tab)
+            plt.ylabel('Nombre d\'occurence')
+            plt.xlabel('Réponses possibles')
+            plt.title('Fréquences des réponses au niveau 1')
 
-    elif choix_stats == 2:
-        with open('stats.json') as json_file:
-            json_content = json.load(json_file)
+        elif choix_stats == 2:
 
-        slices = [0, 0]
-        for player in json_content:
-            for item in json_content[player]:
+            slices = [0, 0]
+            for player in json_content:
+                for item in json_content[player]:
 
-                if float(item['gain']) > 0:
-                   slices[0] += 1
-                elif float(item['gain']) < 0:
-                    slices[1]+=1
+                    if float(item['gain']) > 0:
+                        slices[0] += 1
+                    elif float(item['gain']) < 0:
+                        slices[1] += 1
 
-        activies = ['gagnants', 'perdants']
-        colors = ['b', 'r']
-        plt.title('Proportions de gagnants')
+            activies = ['gagnants', 'perdants']
+            colors = ['b', 'r']
+            plt.title('Proportions de gagnants')
 
-        plt.pie(slices, labels=activies
-                , colors=colors
-                , startangle=90
-                , shadow=True
-                , explode=(0, 0)
-                , autopct='%1.1f%%'
-                )
+            plt.pie(slices, labels=activies
+                    , colors=colors
+                    , startangle=90
+                    , shadow=True
+                    , explode=(0, 0)
+                    , autopct='%1.1f%%'
+                    )
+
+        elif choix_stats == 3:
+            tab = [0, 0, 0, 0, 0]
+            for player in json_content:
+                for item in json_content[player]:
+                    if item['level'] == '1':
+                        # if item['statut'] == 'win':
+                            tab[len(item['essais'])-1] += 1
+                        # else:
+                        #     tab[5] += 1
+            reponses = ['1', '2', '3', '4', '5']
+
+            plt.bar(reponses, tab)
+            plt.ylabel('Nombre de victoires')
+            plt.xlabel('Nombre de coups')
+            plt.title('Fréquence du nombre de coup au niveau 1')
 
     plt.show()
 
@@ -410,26 +454,27 @@ def get_last_dotation_in_json():
 
         if test['actual_dotation'] == 0:
             print('''
-Vous étiez à sec la dernière fois, cependant vous êtes chanceux : la banque vous fait cadeau de 10€.''')
+Welcome back %s !
+Vous étiez à sec la dernière fois, cependant vous êtes chanceux : la banque vous fait cadeau de 10€.'''%(name_user))
         else:
             dotation = test['actual_dotation']
             print('''
-La dernière fois, vous aviez fini à '+ str(dotation) +'€, la banque vous rend votre argent.''')
+Welcome back %s !
+La dernière fois, vous aviez fini à %s€, la banque vous rend votre argent.'''%(name_user, str(dotation)))
 
 
+# Fonction globale du jeu
 def game():
     boolean_while = True
     global data_partie
 
     start()
-    while boolean_while == True:
+    while boolean_while:
         get_mise()
         get_random()
         guess()
         boolean_while = menu()
     statistiques_partie(data_partie)
-
-
 
 
 game()
