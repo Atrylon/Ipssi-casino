@@ -25,24 +25,47 @@ def start():
 
     try:
         choix = int(input('''
-Bonjour ! Voulez-vous jouer, voir les stats ou quitter ? (1/2/3)
+                    Bienvenue !  
+                    
+---------------------------------------------------- 
+| Vous pouvez :                                    |
+|       - Jouer (1)                                |
+|       - Voir les statistiques globales (2)       |
+|       - Quitter (3)                              |
+----------------------------------------------------
 Votre réponse : '''))
     except:
-        pass
+        while choix not in (1,2,3):
+            choix = int(input('''
+Entrée incorrecte !
+                    
+---------------------------------------------------- 
+| Vous pouvez :                                    |
+|       - Jouer (1)                                |
+|       - Voir les statistiques globales (2)       |
+|       - Quitter (3)                              |
+----------------------------------------------------
+Votre réponse : '''))
 
     while choix == 2 :
         statistiques_globales()
         choix = int(input('''
-Bonjour ! Voulez-vous voir les stats, jouer ou quitter ? (1/2/3) 
+---------------------------------------------------- 
+| Vous pouvez :                                    |
+|       - Jouer (1)                                |
+|       - Voir les statistiques globales (2)       |
+|       - Quitter (3)                              |
+----------------------------------------------------
 Votre réponse : '''))
 
     if choix == 3:
-        print('Au revoir !')
+        print('''
+                    Au revoir !''')
         exit()
 
 
     name_user = input('''
-Je suis Python. Quel est votre pseudo ? 
+Je suis PYTHON. Quel est votre pseudo ? 
 Votre pseudo : ''')
 
     get_last_dotation_in_json()
@@ -82,11 +105,13 @@ Votre mise : '''))
 
     while int(mise) > dotation or int(mise) == 0:
         if int(mise) == 0 :
-            mise = int(input('''Erreur, votre mise ne peut être nulle.
+            mise = int(input('''
+Erreur, votre mise ne peut être nulle.
 Entrer une mise inférieure ou égale à %s€
 Votre mise : ''' % (str(dotation))))
         else:
-            mise = int(input('''Erreur, votre mise est plus elevé que votre solde.
+            mise = int(input('''
+Erreur, votre mise est plus elevé que votre solde.
 Entrer une mise inférieure ou égale à %s€
 Votre mise : '''%(str(dotation))))
 
@@ -103,7 +128,7 @@ def get_random():
 
     nb_python = randrange(1, stop, 1)
     print('''
-Ca y est, j\'ai choisi un nombre entre 1 et %s'''%(limite))
+Ca y est, j\'ai choisi un nombre entre 1 et %s !'''%(limite))
 
 
 def guess():
@@ -117,25 +142,27 @@ def guess():
     essais_niveau = []
     nb_coup = 0
     nb_user = 0
+    max_tentatives = 5
 
-    if level == 1:
-        max_tentatives = 5
-    elif level == 2:
+    if level == 2:
         max_tentatives = 7
     elif level == 3:
         max_tentatives = 10
 
-    print('psssst le nombre secret est : ' + str(nb_python))
-
+    # print('psssst le nombre secret est : ' + str(nb_python))
 
     try:
         debut = datetime.now()
-        nb_user = int(input('''Alors mon nombre est : 
-'''))
+        nb_user = int(input('''
+Vous avez %s essais.
+Essayez de deviner mon nombre. 
+Votre réponse : '''%(str(max_tentatives-nb_coup))))
     except:
         while True:
             try:
-                nb_user = int(input('Je ne comprends pas votre nombre. Entrez SVP un nombre entier : '))
+                nb_user = int(input('''
+Je ne comprends pas votre nombre, entrez SVP un nombre entier.
+Votre réponse : '''))
                 break
             except:
                 continue
@@ -147,25 +174,31 @@ def guess():
         essais_niveau.append(nb_user)
 
         if nb_coup + 1 == max_tentatives:
-            print('''Atention, il ne vous reste qu\'une chance !''')
+            print('''
+Atention, il ne vous reste qu\'une chance !''')
         elif nb_coup == max_tentatives:
-            print('''Vous avez perdu ! Mon nombre est ''' + str(nb_python) + ''' !\n
-            ''')
+            print('''
+Vous avez perdu ! Mon nombre est ''' + str(nb_python) + ''' !''')
+            break
 
         if nb_user > nb_python:
-            print('''Votre nombre est trop grand !
-            ''')
-            nb_user = int(input('Alors mon nombre est : '))
+            print('''Votre nombre est trop grand !''')
+            nb_user = int(input('''
+Il vous reste %s essais.
+Essayez de deviner mon nombre. 
+Votre réponse : '''%(str(max_tentatives-nb_coup))))
         elif nb_user < nb_python:
-            print('''Votre nombre est trop petit !
-            ''')
-            nb_user = int(input('Alors mon nombre est : '))
+            print('''Votre nombre est trop petit !''')
+            nb_user = int(input('''
+Il vous reste %s essais.
+Essayez de deviner mon nombre. 
+Votre réponse : '''%(str(max_tentatives-nb_coup))))
         nb_coup += 1
 
     # On ajoute la dernière réponse au tableau
     essais_niveau.append(nb_user)
 
-    if nb_user == nb_python:
+    if nb_user == nb_python or nb_coup == max_tentatives:
         if nb_coup == 1:
             gain = mise * 2
         elif nb_coup == 2:
@@ -178,7 +211,10 @@ def guess():
         text_win = 'Bingo ' + name_user + ', vous avez gagné en ' + str(nb_coup) + ' coup(s)'
 
         if dotation > 0:
-            text_win = text_win + ' et vous avez emporté ' + str(gain) + '€ !'
+            if gain > 0 :
+                text_win = text_win + ' et vous avez emporté ' + str(gain) + '€ !'
+            else:
+                text_win = text_win + ' mais vous avez perdu ' + str(-gain) + '€ !'
         else:
             text_win = text_win + ' mais votre solde est null. A la prochaine !'
 
@@ -213,10 +249,14 @@ def menu():
     global level
 
     if dotation > 0:
-        choix = input('Il vous reste '+ str(dotation)+ '€. Souhaitez-vous continuer la partie (O/N) ? ')
+        choix = input('''Il vous reste '+ str(dotation)+ '€. 
+Souhaitez-vous continuer la partie (O/N) ? 
+Votre réponse : ''')
 
         while choix not in ('O', 'N') :
-            choix = input('Je ne comprends pas votre réponse. Souhaitez-vous continuer la partie (O/N) ? ')
+            choix = input('''
+Je ne comprends pas votre réponse. Souhaitez-vous continuer la partie (O/N) ? 
+Votre réponse : ''')
 
         if choix == 'N' :
             print('Au revoir ! Vous finissez la partie avec ' + str(dotation) +'€.')
@@ -266,7 +306,7 @@ def statistiques_partie(data_partie):
     print('''
 Au revoir %s !
 Vous avez fini %s partie(s) en %s
-Nombre d'essais total : %s
+Nombre d'essais totaux : %s
 Gains totaux : %s€
 Argent à la fin de la partie : %s €
 '''%(name_user, str(len(data_partie[name_user])), str(last_duree.time()), str(essais_cumules), str(gain_cumules), dotation_finale))
@@ -320,10 +360,12 @@ def get_last_dotation_in_json():
         test = json_content[name_user][-1]
 
         if test['actual_dotation'] == 0:
-            print('Vous étiez à sec la dernière fois mais la banque vous fait cadeau de 10€.')
+            print('''
+Vous étiez à sec la dernière fois, cependant vous êtes chanceux : la banque vous fait cadeau de 10€.''')
         else:
             dotation = test['actual_dotation']
-            print('La dernière fois, vous aviez fini à '+ str(dotation) +'€, la banque vous rend votre argent.')
+            print('''
+La dernière fois, vous aviez fini à '+ str(dotation) +'€, la banque vous rend votre argent.''')
 
 
 def game():
