@@ -26,7 +26,6 @@ def start():
     try:
         choix = int(input('''
                     Bienvenue !  
-                    
 ---------------------------------------------------- 
 | Vous pouvez :                                    |
 |       - Jouer (1)                                |
@@ -37,8 +36,7 @@ Votre réponse : '''))
     except:
         while choix not in (1,2,3):
             choix = int(input('''
-Entrée incorrecte !
-                    
+ENTREE INCORRECTE !   
 ---------------------------------------------------- 
 | Vous pouvez :                                    |
 |       - Jouer (1)                                |
@@ -315,22 +313,73 @@ Argent à la fin de la partie : %s €
 def statistiques_globales():
     plt.style.use('ggplot')
 
-    with open('stats.json') as json_file:
-        json_content = json.load(json_file)
+    choix_stats = 0
 
-    list_essais_1 = []
-    tab = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    for player in json_content:
-        for item in json_content[player]:
-            if item['level'] == '1':
-                for essai in item['essais']:
-                    tab[essai-1] += 1
-    reponses = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+    try:
+        choix_stats = int(input('''
+---------------------------------------------------- 
+| Vous pouvez :                                    |
+|       - Fréquence de réponse au niveau 1 (1)     |
+|       - Pourcentage de gagnants (2)              |
+|       - Retour au menu (3)                       |
+----------------------------------------------------
+Votre réponse : '''))
+    except:
+        while choix_stats not in (1, 2, 3):
+            choix = int(input('''
+    ENTREE INCORRECTE !   
+---------------------------------------------------- 
+| Vous pouvez :                                    |
+|       - Fréquence de réponse au niveau 1 (1)     |
+|       - Pourcentage de gagnants (2)              |
+|       - Retour au menu (3)                       |
+----------------------------------------------------
+Votre réponse : '''))
 
-    plt.bar(reponses, tab)
-    plt.ylabel('Nombre d\'occurence')
-    plt.xlabel('Réponses possibles')
-    plt.title('Fréquences des réponses au niveau 1')
+    if choix_stats == 3 :
+        start()
+    elif choix_stats == 1:
+        with open('stats.json') as json_file:
+            json_content = json.load(json_file)
+
+        list_essais_1 = []
+        tab = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        for player in json_content:
+            for item in json_content[player]:
+                if item['level'] == '1':
+                    for essai in item['essais']:
+                        tab[essai-1] += 1
+        reponses = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+
+        plt.bar(reponses, tab)
+        plt.ylabel('Nombre d\'occurence')
+        plt.xlabel('Réponses possibles')
+        plt.title('Fréquences des réponses au niveau 1')
+
+    elif choix_stats == 2:
+        with open('stats.json') as json_file:
+            json_content = json.load(json_file)
+
+        slices = [0, 0]
+        for player in json_content:
+            for item in json_content[player]:
+
+                if float(item['gain']) > 0:
+                   slices[0] += 1
+                elif float(item['gain']) < 0:
+                    slices[1]+=1
+
+        activies = ['gagnants', 'perdants']
+        colors = ['b', 'r']
+        plt.title('Proportions de gagnants')
+
+        plt.pie(slices, labels=activies
+                , colors=colors
+                , startangle=90
+                , shadow=True
+                , explode=(0, 0)
+                , autopct='%1.1f%%'
+                )
 
     plt.show()
 
